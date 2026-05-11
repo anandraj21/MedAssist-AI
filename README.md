@@ -216,4 +216,4 @@ pm2 start server.js --name medassist-api
 
 ## 📞 Support
 
-Built with ❤️ using MERN + Claude AI
+Built with ❤️ using MERN...
