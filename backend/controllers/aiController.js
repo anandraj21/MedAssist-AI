@@ -11,7 +11,13 @@ const symptomCheck = async (req, res) => {
     const { symptoms, age, gender } = req.body;
     if (!symptoms) return res.status(400).json({ message: 'Symptoms required' });
 
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const model = genAI.getGenerativeModel(
+      { model: MODEL_NAME },
+      { apiVersion: 'v1' }
+    );
+
+    // Debug: List models to see what is actually available if we hit a 404
+    console.log(`🤖 Attempting AI Check with model: ${MODEL_NAME} (v1)`);
 
     const prompt = `You are a helpful medical AI assistant. A patient has the following symptoms:
 
@@ -49,10 +55,13 @@ const aiChat = async (req, res) => {
       parts: [{ text: msg.content }]
     }));
 
-    const model = genAI.getGenerativeModel({ 
-      model: MODEL_NAME,
-      systemInstruction: systemContext || 'You are a helpful medical assistant supporting a consultation. Be professional, empathetic, and always recommend consulting the doctor for specific medical advice.'
-    });
+    const model = genAI.getGenerativeModel(
+      { 
+        model: MODEL_NAME,
+        systemInstruction: systemContext || 'You are a helpful medical assistant supporting a consultation. Be professional, empathetic, and always recommend consulting the doctor for specific medical advice.'
+      },
+      { apiVersion: 'v1' }
+    );
 
     let responseText = "";
     
@@ -88,7 +97,10 @@ const summarizeConsultation = async (req, res) => {
   try {
     const { symptoms, diagnosis, medicines, doctorNotes } = req.body;
 
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const model = genAI.getGenerativeModel(
+      { model: MODEL_NAME },
+      { apiVersion: 'v1' }
+    );
 
     const prompt = `Create a clear, patient-friendly summary of this medical consultation:
 
