@@ -11,12 +11,30 @@ const symptomCheck = async (req, res) => {
     const { symptoms, age, gender } = req.body;
     if (!symptoms) return res.status(400).json({ message: 'Symptoms required' });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel(
+      { model: "gemini-1.5-flash" },
+      { apiVersion: 'v1' }
+    );
 
-    const prompt = `You are a medical AI. Symptoms: ${symptoms}. Give 2 conditions and urgency.`;
+    const prompt = `You are a helpful medical AI assistant. A patient has the following symptoms:
+
+Patient Info: Age: ${age || 'unknown'}, Gender: ${gender || 'unknown'}
+Symptoms: ${symptoms}
+
+Please provide:
+1. Possible conditions (list 2-3 likely ones, not a definitive diagnosis)
+2. Recommended specialist type to consult
+3. Urgency level (Routine / Soon / Urgent / Emergency)
+4. Basic home care advice while waiting for appointment
+5. Warning signs to watch for
+
+Be empathetic, clear, and always remind the patient to consult a real doctor for proper diagnosis.
+Format your response in clear sections with headers.`;
+
     const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
 
-    res.json({ result: result.response.text() });
+    res.json({ result: responseText });
   } catch (err) {
     console.error('❌ AI Symptom Check Error:', err);
     res.status(500).json({ message: err.message });
