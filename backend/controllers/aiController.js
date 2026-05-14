@@ -11,28 +11,26 @@ const symptomCheck = async (req, res) => {
     const { symptoms, age, gender } = req.body;
     if (!symptoms) return res.status(400).json({ message: 'Symptoms required' });
 
-    console.log("🤖 Calling Gemini API directly via REST...");
-    
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{ text: `You are a medical AI. Symptoms: ${symptoms}. Give 2 conditions and urgency.` }]
-        }]
-      })
-    });
+    // Using the 'latest' alias which we confirmed is available in your account
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
-    const data = await response.json();
+    const prompt = `You are a helpful medical AI assistant. A patient has the following symptoms:
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'API request failed');
-    }
+Patient Info: Age: ${age || 'unknown'}, Gender: ${gender || 'unknown'}
+Symptoms: ${symptoms}
 
-    const responseText = data.candidates[0].content.parts[0].text;
-    res.json({ result: responseText });
+Please provide:
+1. Possible conditions (list 2-3 likely ones, not a definitive diagnosis)
+2. Recommended specialist type to consult
+3. Urgency level (Routine / Soon / Urgent / Emergency)
+4. Basic home care advice while waiting for appointment
+5. Warning signs to watch for
+
+Be empathetic, clear, and always remind the patient to consult a real doctor for proper diagnosis.
+Format your response in clear sections with headers.`;
+
+    const result = await model.generateContent(prompt);
+    res.json({ result: result.response.text() });
   } catch (err) {
     console.error('❌ AI Symptom Check Error:', err);
     res.status(500).json({ message: err.message });
