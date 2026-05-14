@@ -11,13 +11,28 @@ const symptomCheck = async (req, res) => {
     const { symptoms, age, gender } = req.body;
     if (!symptoms) return res.status(400).json({ message: 'Symptoms required' });
 
-    console.log("🤖 Initializing Gemini 1.5 Flash...");
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const prompt = `You are a medical AI. Symptoms: ${symptoms}. Give 2 conditions and urgency.`;
-    const result = await model.generateContent(prompt);
+    console.log("🤖 Calling Gemini API directly via REST...");
     
-    res.json({ result: result.response.text() });
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: `You are a medical AI. Symptoms: ${symptoms}. Give 2 conditions and urgency.` }]
+        }]
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'API request failed');
+    }
+
+    const responseText = data.candidates[0].content.parts[0].text;
+    res.json({ result: responseText });
   } catch (err) {
     console.error('❌ AI Symptom Check Error:', err);
     res.status(500).json({ message: err.message });
