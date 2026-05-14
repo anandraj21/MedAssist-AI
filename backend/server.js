@@ -14,6 +14,15 @@ const aiRoutes = require('./routes/aiRoutes');
 const app = express();
 const server = http.createServer(app);
 
+// Validate environment variables
+const requiredEnv = ['MONGO_URI', 'JWT_SECRET', 'GEMINI_API_KEY'];
+requiredEnv.forEach(name => {
+  if (!process.env[name]) {
+    console.error(`❌ CRITICAL ERROR: ${name} is missing from environment variables!`);
+    process.exit(1);
+  }
+});
+
 // Allowed origins
 const allowedOrigins = [
   'http://localhost:5173',
