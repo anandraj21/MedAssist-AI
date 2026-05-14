@@ -1,6 +1,8 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+// Initialize with stable v1 API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const MODEL_NAME = "gemini-1.5-flash";
 
 // @desc  AI Symptom Checker
 // @route POST /api/ai/symptom-check
@@ -9,7 +11,7 @@ const symptomCheck = async (req, res) => {
     const { symptoms, age, gender } = req.body;
     if (!symptoms) return res.status(400).json({ message: 'Symptoms required' });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
     const prompt = `You are a helpful medical AI assistant. A patient has the following symptoms:
 
@@ -48,7 +50,7 @@ const aiChat = async (req, res) => {
     }));
 
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-pro",
+      model: MODEL_NAME,
       systemInstruction: systemContext || 'You are a helpful medical assistant supporting a consultation. Be professional, empathetic, and always recommend consulting the doctor for specific medical advice.'
     });
 
@@ -86,7 +88,7 @@ const summarizeConsultation = async (req, res) => {
   try {
     const { symptoms, diagnosis, medicines, doctorNotes } = req.body;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
     const prompt = `Create a clear, patient-friendly summary of this medical consultation:
 
