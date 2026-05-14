@@ -11,33 +11,32 @@ const symptomCheck = async (req, res) => {
     const { symptoms, age, gender } = req.body;
     if (!symptoms) return res.status(400).json({ message: 'Symptoms required' });
 
-    const model = genAI.getGenerativeModel(
-      { model: MODEL_NAME },
-      { apiVersion: 'v1' }
-    );
+    // Try a few different model names to find one that works for this account
+    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro", "gemini-1.0-pro"];
+    let model = null;
+    let lastError = null;
 
-    // Debug: List models to see what is actually available if we hit a 404
-    console.log(`🤖 Attempting AI Check with model: ${MODEL_NAME} (v1)`);
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`🤖 Trying model: ${modelName}...`);
+        const tempModel = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1' });
+        
+        const prompt = `You are a medical AI. Symptoms: ${symptoms}. Give 2 conditions and urgency.`;
+        const result = await tempModel.generateContent(prompt);
+        
+        if (result) {
+          model = tempModel;
+          console.log(`✅ SUCCESS! Using model: ${modelName}`);
+          return res.json({ result: result.response.text() });
+        }
+      } catch (e) {
+        lastError = e;
+        console.log(`❌ Model ${modelName} failed: ${e.message}`);
+        continue;
+      }
+    }
 
-    const prompt = `You are a helpful medical AI assistant. A patient has the following symptoms:
-
-Patient Info: Age: ${age || 'unknown'}, Gender: ${gender || 'unknown'}
-Symptoms: ${symptoms}
-
-Please provide:
-1. Possible conditions (list 2-3 likely ones, not a definitive diagnosis)
-2. Recommended specialist type to consult
-3. Urgency level (Routine / Soon / Urgent / Emergency)
-4. Basic home care advice while waiting for appointment
-5. Warning signs to watch for
-
-Be empathetic, clear, and always remind the patient to consult a real doctor for proper diagnosis.
-Format your response in clear sections with headers.`;
-
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
-
-    res.json({ result: responseText });
+    throw lastError || new Error("No available models found for this API key.");
   } catch (err) {
     console.error('❌ AI Symptom Check Error:', err);
     res.status(500).json({ message: err.message });
