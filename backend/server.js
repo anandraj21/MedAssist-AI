@@ -62,9 +62,16 @@ app.options('*', cors(corsOptions)); // Handle preflight
 app.use(express.json());
 
 // Connect DB
+let dbError = null;
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB Atlas Connected'))
-  .catch((err) => console.error('❌ Connection Failed:', err));
+  .then(() => {
+    console.log('✅ MongoDB Atlas Connected');
+    dbError = null;
+  })
+  .catch((err) => {
+    console.error('❌ Connection Failed:', err);
+    dbError = err.message;
+  });
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -75,7 +82,8 @@ app.use('/api/ai', aiRoutes);
 app.get('/', (req, res) => {
   res.json({ 
     message: '🏥 MedAssist AI API is running',
-    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+    error: dbError
   });
 });
 
