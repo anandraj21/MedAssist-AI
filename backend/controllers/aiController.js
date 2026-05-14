@@ -11,39 +11,12 @@ const symptomCheck = async (req, res) => {
     const { symptoms, age, gender } = req.body;
     if (!symptoms) return res.status(400).json({ message: 'Symptoms required' });
 
-    // Try a few different model names to find one that works for this account
-    const modelsToTry = [
-      "gemini-1.5-flash", 
-      "models/gemini-1.5-flash",
-      "gemini-1.5-pro", 
-      "models/gemini-1.5-pro",
-      "gemini-pro", 
-      "models/gemini-pro"
-    ];
-    let model = null;
-    let lastError = null;
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-    for (const modelName of modelsToTry) {
-      try {
-        console.log(`🤖 Trying model: ${modelName}...`);
-        const tempModel = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1' });
-        
-        const prompt = `You are a medical AI. Symptoms: ${symptoms}. Give 2 conditions and urgency.`;
-        const result = await tempModel.generateContent(prompt);
-        
-        if (result) {
-          model = tempModel;
-          console.log(`✅ SUCCESS! Using model: ${modelName}`);
-          return res.json({ result: result.response.text() });
-        }
-      } catch (e) {
-        lastError = e;
-        console.log(`❌ Model ${modelName} failed: ${e.message}`);
-        continue;
-      }
-    }
+    const prompt = `You are a medical AI. Symptoms: ${symptoms}. Give 2 conditions and urgency.`;
+    const result = await model.generateContent(prompt);
 
-    throw lastError || new Error("No available models found for this API key.");
+    res.json({ result: result.response.text() });
   } catch (err) {
     console.error('❌ AI Symptom Check Error:', err);
     res.status(500).json({ message: err.message });
