@@ -11,30 +11,38 @@ const symptomCheck = async (req, res) => {
     const { symptoms, age, gender } = req.body;
     if (!symptoms) return res.status(400).json({ message: 'Symptoms required' });
 
-    const model = genAI.getGenerativeModel(
-      { model: "gemini-1.5-flash" },
-      { apiVersion: 'v1' }
-    );
+    const modelsToTry = [
+      "gemini-1.5-flash",
+      "gemini-1.5-flash-latest",
+      "gemini-1.5-pro",
+      "gemini-pro",
+      "gemini-1.0-pro",
+      "models/gemini-1.5-flash",
+      "models/gemini-1.5-pro",
+      "models/gemini-pro"
+    ];
 
-    const prompt = `You are a helpful medical AI assistant. A patient has the following symptoms:
+    let lastError = null;
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`🔍 Scanning for working model: ${modelName}...`);
+        const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1' });
+        const result = await model.generateContent("test");
+        
+        if (result) {
+          console.log(`✅ FOUND WORKING MODEL: ${modelName}`);
+          // Now do the real prompt
+          const realPrompt = `You are a medical AI. Symptoms: ${symptoms}. Give 2 likely conditions and urgency.`;
+          const finalResult = await model.generateContent(realPrompt);
+          return res.json({ result: finalResult.response.text() });
+        }
+      } catch (e) {
+        lastError = e;
+        console.log(`❌ ${modelName} failed: ${e.message}`);
+      }
+    }
 
-Patient Info: Age: ${age || 'unknown'}, Gender: ${gender || 'unknown'}
-Symptoms: ${symptoms}
-
-Please provide:
-1. Possible conditions (list 2-3 likely ones, not a definitive diagnosis)
-2. Recommended specialist type to consult
-3. Urgency level (Routine / Soon / Urgent / Emergency)
-4. Basic home care advice while waiting for appointment
-5. Warning signs to watch for
-
-Be empathetic, clear, and always remind the patient to consult a real doctor for proper diagnosis.
-Format your response in clear sections with headers.`;
-
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
-
-    res.json({ result: responseText });
+    throw lastError || new Error("No available Gemini models found for this API key.");
   } catch (err) {
     console.error('❌ AI Symptom Check Error:', err);
     res.status(500).json({ message: err.message });
