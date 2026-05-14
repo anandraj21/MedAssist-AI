@@ -12,7 +12,14 @@ const symptomCheck = async (req, res) => {
     if (!symptoms) return res.status(400).json({ message: 'Symptoms required' });
 
     // Try a few different model names to find one that works for this account
-    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro", "gemini-1.0-pro"];
+    const modelsToTry = [
+      "gemini-1.5-flash", 
+      "models/gemini-1.5-flash",
+      "gemini-1.5-pro", 
+      "models/gemini-1.5-pro",
+      "gemini-pro", 
+      "models/gemini-pro"
+    ];
     let model = null;
     let lastError = null;
 
