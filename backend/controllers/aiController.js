@@ -31,6 +31,7 @@ Format your response in clear sections with headers.`;
 
     res.json({ result: responseText });
   } catch (err) {
+    console.error('❌ AI Symptom Check Error:', err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -74,6 +75,7 @@ const aiChat = async (req, res) => {
 
     res.json({ reply: responseText });
   } catch (err) {
+    console.error('❌ AI Chat Error:', err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -104,6 +106,7 @@ Keep it simple and reassuring.`;
 
     res.json({ summary: responseText });
   } catch (err) {
+    console.error('❌ AI Summarize Error:', err);
     res.status(500).json({ message: err.message });
   }
 };
