@@ -9,7 +9,7 @@ const symptomCheck = async (req, res) => {
     const { symptoms, age, gender } = req.body;
     if (!symptoms) return res.status(400).json({ message: 'Symptoms required' });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `You are a helpful medical AI assistant. A patient has the following symptoms:
 
@@ -47,7 +47,7 @@ const aiChat = async (req, res) => {
     }));
 
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash",
+      model: "gemini-1.5-flash",
       systemInstruction: systemContext || 'You are a helpful medical assistant supporting a consultation. Be professional, empathetic, and always recommend consulting the doctor for specific medical advice.'
     });
 
@@ -84,7 +84,7 @@ const summarizeConsultation = async (req, res) => {
   try {
     const { symptoms, diagnosis, medicines, doctorNotes } = req.body;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `Create a clear, patient-friendly summary of this medical consultation:
 
