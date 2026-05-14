@@ -3,7 +3,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
-const connectDB = require('./config/db');
+const mongoose = require('mongoose');
 const setupSocket = require('./socket/socket');
 
 // Routes
@@ -28,7 +28,9 @@ app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
 app.use(express.json());
 
 // Connect DB
-connectDB();
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('✅ MongoDB Atlas Connected'))
+  .catch((err) => console.error('❌ Connection Failed:', err));
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -45,4 +47,17 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use. Please stop the other process or change PORT in .env`);
+    process.exit(1);
+  } else if (err.code === 'EACCES') {
+    console.error(`❌ Port ${PORT} requires elevated privileges.`);
+    process.exit(1);
+  } else {
+    throw err;
+  }
+});
+
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
