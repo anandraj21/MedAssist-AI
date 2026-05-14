@@ -17,18 +17,28 @@ const server = http.createServer(app);
 // Allowed origins
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:3000',
+  'https://medassist-ai-helper.vercel.app',
   process.env.CLIENT_URL,
-].filter(Boolean);
+].filter(Boolean).map(origin => origin.replace(/\/$/, ''));
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Clean origin (remove trailing slash if present)
+    const cleanOrigin = origin.replace(/\/$/, '');
+    
+    if (allowedOrigins.includes(cleanOrigin)) {
       callback(null, true);
     } else {
-      callback(new Error(`CORS blocked: ${origin}`));
+      console.warn(`CORS blocked: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
+  optionsSuccessStatus: 200
 };
 
 // Socket.io setup
