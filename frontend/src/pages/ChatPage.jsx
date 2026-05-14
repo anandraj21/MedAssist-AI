@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { io } from 'socket.io-client';
-import api from '../services/api';
+import api, { backendUrl } from '../services/api';
 import { Send, Bot, Video, Phone, PhoneOff, Mic, MicOff, VideoOff } from 'lucide-react';
 import { aiService } from '../services/aiService';
 import { format } from 'date-fns';
@@ -37,8 +37,13 @@ const ChatPage = () => {
   const streamRef = useRef(null);
 
   useEffect(() => {
-    // Connect socket
-    socket = io(window.location.origin);
+    // Connect socket to backend
+    const socketUrl = backendUrl || window.location.origin;
+    socket = io(socketUrl, {
+      withCredentials: true,
+      transports: ['polling', 'websocket']
+    });
+    
     socket.emit('register', user._id);
 
     socket.on('receive_message', (msg) => {

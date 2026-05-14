@@ -24,4 +24,5 @@ api.interceptors.response.use(
   }
 );
 
+export { backendUrl };
 export default api;
