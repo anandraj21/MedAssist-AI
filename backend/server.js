@@ -78,6 +78,18 @@ app.use('/api/auth', authRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/ai', aiRoutes);
 
+// Debug route to list models
+app.get('/api/ai/debug-models', async (req, res) => {
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Health check
 app.get('/', (req, res) => {
   res.json({ 
@@ -91,18 +103,6 @@ app.get('/', (req, res) => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!' });
-});
-
-// Debug route to list models
-app.get('/api/ai/debug-models', async (req, res) => {
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 });
 
 const PORT = process.env.PORT || 5000;
