@@ -62,7 +62,12 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/ai', aiRoutes);
 
 // Health check
-app.get('/', (req, res) => res.json({ message: '🏥 MedAssist AI API is running' }));
+app.get('/', (req, res) => {
+  res.json({ 
+    message: '🏥 MedAssist AI API is running',
+    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+  });
+});
 
 // Error handler
 app.use((err, req, res, next) => {
